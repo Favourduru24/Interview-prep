@@ -12,7 +12,7 @@ const Header = () => {
      const router = useRouter()
           
      const userName = userId?.user?.name?.charAt(0).toUpperCase()
-    
+
      const [open, setOpen] = useState(true)
 
      const handleOpen = () => {

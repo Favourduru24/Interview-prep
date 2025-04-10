@@ -3,9 +3,10 @@ import Image from 'next/image'
 import Link from 'next/link'
 import React from 'react'
 import DisplayTechIcon from './DisplayTechIcon'
+import dayjs from 'dayjs'
 
 const InterviewCard = ({
-    id,
+  interviewId,
     userId,
     role,
     type,
@@ -14,11 +15,12 @@ const InterviewCard = ({
     questions,
     finalized,
     createdAt,
-    interviewId
 }) => {
 
       const feedback = null
+
       const normalizedType = /mix/gi.test(type) ? 'Mixed' : type
+      const formattedDate = dayjs(feedback?.createdAt || createdAt || Date.now()).format('MMM D, YYYY')
 
   return (
     <div className='bg-gradient-to-b from-[#4B4D4F] to-[#4B4D4F33]  p-0.5 rounded-2xl w-fit w-[360px] max-sm:w-full min-h-96'>
@@ -32,7 +34,7 @@ const InterviewCard = ({
           <div className='flex gap-5 mt-3 flex-row'>
        <div className='flex gap-2 flex-row'>
      <Image src='/calendar.svg' alt='calendar' width={22} height={22}/>
-       <p>{createdAt}</p>
+       <p>{formattedDate}</p>
        </div>
          <div className='flex flex-row gap-2 items-center'>
          <Image  src='/star.svg' alt='star' width={22} height={22}/>
@@ -48,7 +50,7 @@ const InterviewCard = ({
           <DisplayTechIcon techStack={techstack}/>
 
            <button className='btn-primary'>
-            <Link href={feedback ? `/interview/${interviewId}/feedback`: `/interview/${interviewId}`}>
+            <Link href={feedback ? `/interview/${id}/feedback`: `/interview/${interviewId}`}>
                {feedback ? 'Check Feedback' : 'View Interview'}
             </Link>
            </button>

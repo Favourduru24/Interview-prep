@@ -29,13 +29,10 @@ export async function POST(request) {
           Thank you! <3
       `});
 
-      console.log("AI Response:", questions); // Add this line to check the response
-
       // If the response isn't what you expected, handle that case
       if (!questions) {
         throw new Error("No questions returned from AI.");
       }
-  
   
       // Prepare the interview data
         const empty = ''
@@ -57,7 +54,9 @@ export async function POST(request) {
       // Connect to MongoDB (Make sure DB is connected before saving)
   
       // Save the interview document to MongoDB
-      return new Response(JSON.stringify({ success: true, interview }), { status: 200 });
+      return new Response(JSON.parse(JSON.stringify({ success: true,  interview })), { status: 200 });
+
+      // return JSON.parse(JSON.stringify(interview))
       
     } catch (error) {
       console.error("Error:", error);

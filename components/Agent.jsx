@@ -5,8 +5,9 @@ import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { vapi } from '@/lib/vapi.sdk'
+import { interviewer } from '@/constant'
  
-const Agent = ({type}) => {
+const Agent = ({type, interviewId, questions}) => {
 
      const CallStatus = {
         INACTIVE: 'INACTIVE',
@@ -18,6 +19,8 @@ const Agent = ({type}) => {
     const {data: userInfo} = useSession()
 
     const userName = userInfo?.user?.name
+    const userId = userInfo?.user?.id   
+  
 
     const router = useRouter()
     
@@ -25,7 +28,7 @@ const Agent = ({type}) => {
      const [callStatus, setCallStatus] = useState(CallStatus.INACTIVE)
      const [messages, setMessages] = useState([])
 
-    const lastMessage = messages[messages.length - 1]
+    // const lastMessage = messages[messages.length - 1] userId
      
      useEffect(() => {
     const onCallStart = () => setCallStatus(CallStatus.ACTIVE)
@@ -42,7 +45,7 @@ const Agent = ({type}) => {
       const onSpeechStart = () => setIsSpeaking(true)
       const onSpeechEnd = () => setIsSpeaking(false)
 
-       const onError = (error) => console.error('Error', error)
+       const onError = (error) => console.log('Error', error)
 
         vapi.on('call-start', onCallStart)
         vapi.on('call-end', onCallEnd)
@@ -62,20 +65,58 @@ const Agent = ({type}) => {
 
      },[])
 
+      const handleGenerateFeedback = async (messages) => {
+
+          console.log('Generate feedback here.')
+              // Create a server action that generate feedback 
+           const {success, id} = {
+             success: true,
+             id: 'feedback-id'
+           } 
+            
+            if(success && id) {
+               router.push(`/interview/${interviewId}/feedback`)
+            } else {
+               console.log('Error saving feedback!')
+               router.push('/')
+            }
+      }
+
      useEffect(() => {
-       if(callStatus === CallStatus.FINISHED) router.push('/')
+       if(callStatus === CallStatus.FINISHED) {
+         if(type === 'generate') {
+           router.push('/')
+         } else{
+           handleGenerateFeedback(messages)
+         }
+       }
        
-     },[messages, callStatus, type, userId])
+     },[messages, callStatus, type, userInfo])
 
      const handleCall = async () => {
-       setCallStatus(CallStatus.CONNECTING)
 
-        await vapi.start(process.env.NEXT_PUBLIC_VAPI_WORKFLOW_ID, {
-          variableValues: {
-            username: userName,
-            userid: userInfo
-          }
-        })
+      setCallStatus(CallStatus.CONNECTING)
+
+         if(type === 'generate') {
+          await vapi.start(process.env.NEXT_PUBLIC_VAPI_WORKFLOW_ID, {
+            variableValues: {
+              username: userName,
+              userid: userId 
+            }
+          })
+         }  else {
+           let formattedQuestions = ''
+            
+            if(questions) {
+               formattedQuestions = questions.map((question) => `-${question}`).join('\n')
+            }
+             await vapi.start(interviewer, {
+               variableValues: {
+                   questions: formattedQuestions
+               }
+             })
+         }
+        
      }
 
      const handleDisconnect = async () => {
@@ -118,7 +159,7 @@ const Agent = ({type}) => {
      <div className='w-full flex justify-center'>
     {callStatus !== 'ACTIVE'  ? (
          <button className='relative btn-call' onClick={handleCall}>
-            <span className={ cn("absolute animate-ping rounded-full opacity-75", callStatus !== 'CONNECTING' & 'hidden' )}  />
+            <span className={ cn("absolute animate-ping rounded-full opacity-75", callStatus !== 'CONNECTING' && 'hidden' )}  />
             <span>
             {isCallInactiveOrFinished ? 'Call' : '...'} 
             </span>

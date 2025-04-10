@@ -66,10 +66,11 @@ const handler = NextAuth({
         session.user = {
           email: token.email,
           name: token.name,  // Set 'name' from the token
-          image: token.image,  // Ensure 'image' is handled properly
+          image: token.image,
+          id: token.id  // Ensure 'image' is handled properly
         };
       }
-      return session;z
+      return session;
     },
   },
   pages: {
